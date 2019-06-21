@@ -6,6 +6,7 @@ Script installation instructions can be found [here](https://www.aseprite.org/do
 
 ## Border
 Creates a new layer with a 1 pixel wide border around the current image for all frames.
+![](images/border.gif)
 
 ## SpriteLamp
 An older experiment of mine to autogenerate lighting profiles for use with [SpriteLamp](http://www.snakehillgames.com/spritelamp/)
