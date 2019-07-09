@@ -2,11 +2,11 @@
 -- Adds a new layer with a 1px black border around the whole image
 ----------------------------------------------------------------------
 
-function transparentOrMatch(pixel, color)
-  return app.pixelColor.rgbaA(pixel) == 0 or Color(pixel) == color
+function transparentOrMatch(pixel, color, useMatch)
+  return app.pixelColor.rgbaA(pixel) == 0 or (useMatch and Color(pixel) == color)
 end
 
-function drawBorder(sprite, frame, color)
+function drawBorder(sprite, frame, color, useMatch)
   local copiedImage = Image(sprite.width, sprite.height, sprite.colorMode)
   local borderImage = Image(copiedImage)
 
@@ -15,10 +15,10 @@ function drawBorder(sprite, frame, color)
     for y = 0, sprite.height - 1, 1 do
       if transparentOrMatch(copiedImage:getPixel(x, y), color) then
         local draw = false
-        if x > 0 and not transparentOrMatch(copiedImage:getPixel(x - 1, y), color) then draw = true end
-        if y > 0 and not transparentOrMatch(copiedImage:getPixel(x, y - 1), color) then draw = true end
-        if x < (sprite.width - 1) and not transparentOrMatch(copiedImage:getPixel(x + 1, y), color) then draw = true end
-        if y < (sprite.height - 1) and not transparentOrMatch(copiedImage:getPixel(x, y + 1), color) then draw = true end
+        if x > 0 and not transparentOrMatch(copiedImage:getPixel(x - 1, y), color, useMatch) then draw = true end
+        if y > 0 and not transparentOrMatch(copiedImage:getPixel(x, y - 1), color, useMatch) then draw = true end
+        if x < (sprite.width - 1) and not transparentOrMatch(copiedImage:getPixel(x + 1, y), color, useMatch) then draw = true end
+        if y < (sprite.height - 1) and not transparentOrMatch(copiedImage:getPixel(x, y + 1), color, useMatch) then draw = true end
         if draw then borderImage:drawPixel(x, y, color) end
       end
     end
@@ -42,6 +42,8 @@ if sprite == nil then return app.alert("ERROR: Active Sprite does not exist.") e
 
 local dialog = Dialog()
 dialog:color({ id = "borderColor", label = "Border Color", color = Color{ r = 0, g = 0, b = 0, a = 255 } })
+dialog:slider({ id = "thickness", label = "Thickness", min = "1", max = "10", value = "1" })
+dialog:check({ id = "drawOver", label = "Draw over pixels that match", selected = false })
 dialog:button({ id = "cancel", text = "Cancel" })
 dialog:button({ id = "ok", text = "OK" })
 dialog:show()
@@ -55,11 +57,15 @@ if not defaults.ok then return 0 end
 
 app.transaction(
   function()
-    local layer = sprite:newLayer()
-    layer.name = "Border"
+    for t = 0, defaults.thickness - 1, 1 do
+      local layer = sprite:newLayer()
+      layer.name = "Pebbz:ImageBorder"
 
-    for i,frame in ipairs(sprite.frames) do
-      sprite:newCel(layer, frame, drawBorder(sprite, i, defaults.borderColor), Point())
+      for i,frame in ipairs(sprite.frames) do
+        sprite:newCel(layer, frame, drawBorder(sprite, i, defaults.borderColor, defaults.drawOver), Point())
+      end
+
+      if t > 0 then app.command.MergeDownLayer() end
     end
   end
 )
