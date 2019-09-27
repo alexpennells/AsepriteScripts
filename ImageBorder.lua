@@ -27,11 +27,21 @@ function drawBorder(sprite, frame, color, useMatch)
   return borderImage
 end
 
+function findOrCreateLayer(sprite, name)
+  for k,layer in ipairs(sprite.layers) do
+    if layer.name == name then return layer end
+  end
+
+  local newLayer = sprite:newLayer()
+  newLayer.name = name
+  return newLayer
+end
+
 ----------------------------------------------------------------------
 -- PRE-SCRIPT VALIDATIONS
 ----------------------------------------------------------------------
 
-if app.apiVersion ~= 3 then return app.alert("ERROR: This script requires API version 3.") end
+if app.apiVersion < 3 then return app.alert("ERROR: This script requires API version 3.") end
 
 sprite = app.activeSprite
 if sprite == nil then return app.alert("ERROR: Active Sprite does not exist.") end
@@ -58,10 +68,12 @@ if not defaults.ok then return 0 end
 app.transaction(
   function()
     for t = 0, defaults.thickness - 1, 1 do
-      local layer = sprite:newLayer()
-      layer.name = "Pebbz:ImageBorder"
+      local layer = findOrCreateLayer(sprite, "Pebbz:ImageBorder")
 
-      for i,frame in ipairs(sprite.frames) do
+      local frames = sprite.frames
+      if app.range.type == RangeType.FRAMES then frames = app.range.frames end
+
+      for i,frame in ipairs(frames) do
         sprite:newCel(layer, frame, drawBorder(sprite, i, defaults.borderColor, defaults.drawOver), Point())
       end
 

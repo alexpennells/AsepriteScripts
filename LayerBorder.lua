@@ -16,6 +16,16 @@ function forEachPixel(sprite, frame, layer, dest, callback)
   end
 end
 
+function findOrCreateLayer(sprite, name)
+  for k,layer in ipairs(sprite.layers) do
+    if layer.name == name then return layer end
+  end
+
+  local newLayer = sprite:newLayer()
+  newLayer.name = name
+  return newLayer
+end
+
 function drawBorder(src, dest, x, y, pixel)
   if not isTransparent(pixel) then
     dest:drawPixel(x, y, app.pixelColor.rgba(0, 0, 0, 0))
@@ -38,7 +48,7 @@ end
 -- PRE-SCRIPT VALIDATIONS
 ----------------------------------------------------------------------
 
-if app.apiVersion ~= 3 then return app.alert("ERROR: This script requires API version 3.") end
+if app.apiVersion < 3 then return app.alert("ERROR: This script requires API version 3.") end
 
 sprite = app.activeSprite
 if sprite == nil then return app.alert("ERROR: Active Sprite does not exist.") end
@@ -64,14 +74,16 @@ if not DEFAULTS.ok then return 0 end
 
 app.transaction(
   function()
-    local border = sprite:newLayer()
-    border.name = "Pebbz:LayerBorder"
+    local border = findOrCreateLayer(sprite, "Pebbz:LayerBorder")
 
-    for i,frame in ipairs(sprite.frames) do
+    local frames = sprite.frames
+    if app.range.type == RangeType.FRAMES then frames = app.range.frames end
+
+    for i,frame in ipairs(frames) do
       cel = sprite:newCel(border, i)
 
       for k,layer in ipairs(sprite.layers) do
-        if layer ~= border then
+        if layer ~= border and layer.isVisible then
           forEachPixel(sprite, i, layer, cel.image, drawBorder)
         end
       end
