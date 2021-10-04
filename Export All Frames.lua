@@ -11,8 +11,8 @@ for i, tag in ipairs(app.activeSprite.tags) do
     image:drawSprite(app.activeSprite, frame.frameNumber)
     image:saveAs(
       app.activeSprite.filename:gsub(
-        "[^\\/]*$",
-        tag.name .. "_" .. (frame.frameNumber - tag.fromFrame.frameNumber) .. ".png")
+        "%.[^%.]*$",
+        "_" .. tag.name .. "_" .. (frame.frameNumber - tag.fromFrame.frameNumber) .. ".png")
     )
     frame = frame.next
   end
